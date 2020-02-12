@@ -85,7 +85,7 @@ Next you can load in the package:
 library(demdebates2020)
 ```
 
-The package includes a single dataset: `debates`. This dataset represents the spoken words of all Democratic candidates for US president at eight Democratic debates. The following sources have been used to compile the list: Washington Post, Des Moines Register and rev.com. The dataset has the following seven columns:
+The package includes a single dataset: `debates`. This dataset represents the spoken words of all Democratic candidates for US president at eight Democratic debates. The following sources have been used to compile the list: Washington Post, Des Moines Register and rev.com. The dataset has the following eight columns:
 
 + `speaker`: Who is speaking
 + `background`: Reactions from the audience, includes `(APPLAUSE)` or `(LAUGHTER)` (only availabe for the first seven debates)
@@ -94,6 +94,7 @@ The package includes a single dataset: `debates`. This dataset represents the sp
 + `gender`: The gender of the person speaking
 + `debate`: Which debate 
 + `day`: Which day of the debate (first and second debate were split on two separate days)
++ `order`: The order in which the speech acts were delivered
 
 
 
