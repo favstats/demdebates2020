@@ -1,0 +1,121 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  warning = F,
+  message = F,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+
+```{r eval=F, echo=F}
+## basic example code
+
+debates <- readRDS("../dem_debates2/data/debates.RDS")
+
+
+# use_data(debates)
+
+m_chr <- c("Anderson Cooper", "Andrew Yang", "Bernie Sanders", "Beto O'Rourke", "Bill de Blasio", "Chuck Todd", "Cory Booker", "David Muir", "Don Lemon", "Eric Swalwell", "George Stephanopoulos", "Jake Tapper", "Jay Inslee", "Joe Biden", "John Delaney", "John Hickenlooper", "Jorge Ramos", "Joe Diaz-Balart", "Julian Castro", "Lester Holt", "Mark Lacey", "Michael Bennet", "Pete Buttigieg", "Steve Bullock", "Tim Alberta", "Tim Ryan", "Tom Steyer", "Wolf Blizer", "Jose Diaz-Balart")
+
+f_chr <- c("Amy Klobuchar", "Andrea Mitchell", "Ashley Parker", "Elizabeth Warren", "Judy Woodruff", "Kamala Harris", "Kirsten Gillibrand", "Kristen Welker", "Marianne Williamson", "Rachel Maddow", "Tulsi Gabbard", "Abby Phillip", "Amna Nawaz", "Brianne Pfannenstiel", "Dana Bash", "Erin Burnett", "Lindsey Davis", "Savannah Guthrie", "Yamiche Alcindor")
+
+debates <- debates %>%  
+  # mutate(speaker = lagged) %>%  
+  fill(type, .direction = "down") %>% 
+  fill(speaker, .direction = "down") %>% 
+  select(-lagged) %>%
+  mutate_all(str_trim) %>% 
+  # mutate_all(~str_remove(.x, "<U\\+2009>") %>% str_trim) %>%
+  mutate_all(~stringi::stri_trans_general(.x, "latin-ascii")) %>%
+  mutate(speech = ifelse(!is.na(background), background, speech)) %>%
+  filter(!str_count(speech)==0) %>%
+  mutate(speech = ifelse(!is.na(background), NA, speech)) %>%
+  mutate(day = case_when(
+    debate == "1A" ~ 1,
+    debate == "1B" ~ 2,
+    debate == "2A" ~ 1,
+    debate == "2B" ~ 2,
+    T ~ 1
+  ))  %>% 
+  mutate(debate = case_when(
+    debate == "1A" ~ 1,
+    debate == "1B" ~ 1,
+    debate == "2A" ~ 1,
+    debate == "2B" ~ 2,
+    T ~ parse_number(debate)
+  )) %>% 
+  mutate(gender = case_when(
+    speaker %in% m_chr ~ "male",
+    speaker %in% f_chr ~ "female",
+    T ~ "unknown"
+  )) %>% 
+  select(speaker	,background,	speech,	type, gender,	debate,	day	) %>% 
+  mutate(speaker = ifelse(speaker == "Protestor", "Protester", speaker))
+
+use_data(debates, overwrite = T)
+
+
+
+```
+
+# demdebates2020
+
+
+The goal of `demdebates2020` is to provide access to all transcripts of the Democratic debates of the 2020 Presidential Election.
+
+## Installation
+
+You can install `demdebates2020` from GitHub with:
+
+```{r eval=F}
+devtools::install_github("favstats/demdebates2020")
+```
+
+Next you can load in the package:
+
+```{r eval=T}
+library(demdebates2020)
+```
+
+The package includes a single dataset: `debates`. This dataset represents the spoken words of all Democratic candidates for US president at eight Democratic debates. The following sources have been used to compile the list: Washington Post, Des Moines Register and rev.com. The dataset has the following seven columns:
+
++ `speaker`: Who is speaking
++ `background`: Reactions from the audience, includes `(APPLAUSE)` or `(LAUGHTER)` (only availabe for the first seven debates)
++ `speech`: Transcribed speech
++ `type`: Candidate, Moderator or Protester
++ `gender`: The gender of the person speaking
++ `debate`: Which debate 
++ `day`: Which day of the debate (first and second debate were split on two separate days)
+
+
+
+```{r eval=T}
+debates %>% 
+  dplyr::slice(1502:1510) %>% 
+  knitr::kable()
+```
+
+
+
+
+## Sources
+
++ Debate 1, Day 1: https://www.washingtonpost.com/politics/2019/06/27/transcript-night-one-first-democratic-debate-annotated/
++ Debate 1, Day 2: https://www.washingtonpost.com/politics/2019/06/28/transcript-night-first-democratic-debate/
++ Debate 2, Day 1: https://www.washingtonpost.com/politics/2019/07/31/transcript-first-night-second-democratic-debate/
++ Debate 2, Day 2: https://www.washingtonpost.com/politics/2019/08/01/transcript-night-second-democratic-debate/
++ Debate 3: https://www.washingtonpost.com/politics/2019/09/13/transcript-third-democratic-debate/
++ Debate 4: https://www.washingtonpost.com/politics/2019/10/15/october-democratic-debate-transcript/
++ Debate 5: https://www.washingtonpost.com/politics/2019/11/21/transcript-november-democratic-debate/
++ Debate 6: https://www.washingtonpost.com/politics/2019/12/20/transcript-december-democratic-debate/
++ Debate 7: https://www.desmoinesregister.com/story/news/elections/presidential/caucus/2020/01/14/democratic-debate-transcript-what-the-candidates-said-quotes/4460789002/
++ Debate 8: https://www.rev.com/blog/transcripts/new-hampshire-democratic-debate-transcript
