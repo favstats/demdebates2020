@@ -17,3 +17,5 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 Imports: 
     magrittr
+URL: https://github.com/favstats/demdebates2020
+BugReports: https://github.com/favstats/demdebates2020/issues
