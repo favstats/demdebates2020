@@ -63,6 +63,8 @@ debates <- debates %>%
 
 use_data(debates, overwrite = T)
 
+debates %>% 
+  filter(debate == 7)
 
 ```
 
