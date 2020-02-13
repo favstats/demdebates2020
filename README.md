@@ -6,41 +6,53 @@
 The goal of `demdebates2020` is to provide access to all transcripts of
 the Democratic debates of the 2020 Presidential Election.
 
-## Installation
-
-You can install `demdebates2020` from GitHub with:
-
-``` r
-devtools::install_github("favstats/demdebates2020")
-```
-
-Next you can load in the package:
-
-``` r
-library(demdebates2020)
-```
+## Usage
 
 The package includes a single dataset: `debates`. This dataset
 represents the spoken words of all Democratic candidates for US
-president at eight Democratic debates. The following sources have been
-used to compile the list: Washington Post, Des Moines Register and
+president at eight Democratic debates. The following
+[sources](https://github.com/favstats/demdebates2020#sources) have been
+used to compile the data: Washington Post, Des Moines Register and
 rev.com. The dataset has the following eight columns:
 
   - `speaker`: Who is speaking
   - `background`: Reactions from the audience, includes `(APPLAUSE)` or
-    `(LAUGHTER)` (only availabe for the first seven debates)
+    `(LAUGHTER)`
+      - only availabe for the first seven debates
   - `speech`: Transcribed speech
   - `type`: Candidate, Moderator or Protester
   - `gender`: The gender of the person speaking
   - `debate`: Which debate
-  - `day`: Which day of the debate (first and second debate were split
-    on two separate days)
+  - `day`: Which day of the debate
+      - first and second debate were held on two separate days
   - `order`: The order in which the speech acts were delivered
+
+There are two ways in which you can access the dataset.
+
+1.  Read .csv file directly from GitHub
 
 <!-- end list -->
 
 ``` r
-debates %>% 
+debates_url <- "https://raw.githubusercontent.com/favstats/demdebates2020/master/data/debates.csv"
+
+debates <- readr::read_csv(debates_url)
+```
+
+2.  Install and load the R package like this:
+
+<!-- end list -->
+
+``` r
+devtools::install_github("favstats/demdebates2020")
+
+library(demdebates2020)
+```
+
+## Example
+
+``` r
+demdebates2020::debates %>% 
   dplyr::slice(1502:1510) %>% 
   knitr::kable()
 ```
