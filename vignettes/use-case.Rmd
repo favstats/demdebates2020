@@ -1,0 +1,468 @@
+---
+title: "Exploring Democratic Debates of the 2020 US Presidential Elections"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Exploring Debates}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = F,
+  message = F
+)
+```
+
+
+For anyone who is interested in exploring the Democratic primary debates of the U.S. Presidential Election, I compiled a dataset with all debates so far (i.e.: 8). 
+
+In the following blog post I will introduce the R package `demdebates2020` which will be updated to include data from all Democratic debates as they are held. Further, I will present some possible use-cases and an exploratory analysis of the debates.
+
+## Start
+
+First, I load in some packages. 
+
+```{r}
+# Install these packages if you don't have them yet
+# if (!require("pacman")) install.packages("pacman")
+# devtools::install_github("favstats/demdebates2020")
+
+pacman::p_load(tidyverse,       # powerful data wrangling
+               knitr,           # for tables
+               extrafont,       # extra fonts
+               ggtext,          # markdown in ggplot!
+               rvest,           # for emoji scraping 
+               tidytext,        # text processing
+               demdebates2020,  # democratic debates datasets
+               ggthemes,        # custom themes
+               scales)          # for prettying up plot labels
+
+```
+
+
+To liven things up (and as a personal learning experience) I will use the great [`ggtext`](https://github.com/wilkelab/ggtext) package and include some emojis in the graphs to come.
+
+
+I will now present the main dataset: `debates`. This dataset represents the spoken words of all Democratic candidates for US president at eight Democratic debates. The following [sources](https://github.com/favstats/demdebates2020#sources) have been used to compile the data: Washington Post, Des Moines Register and rev.com. The dataset has the following eight columns:
+
++ `speaker`: Who is speaking
++ `background`: Reactions from the audience, includes `(APPLAUSE)` or `(LAUGHTER)` 
+    + only availabe for the first seven debates
++ `speech`: Transcribed speech
++ `type`: Candidate, Moderator or Protester
++ `gender`: The gender of the person speaking
++ `debate`: Which debate 
++ `day`: Which day of the debate 
+    + first and second debate were held on two separate days
++ `order`: The order in which the speech acts were delivered
+
+There are two ways in which you can access the dataset.
+
+1. Read .csv file directly from GitHub
+
+```{r eval=F}
+debates_url <- "https://raw.githubusercontent.com/favstats/demdebates2020/master/data/debates.csv"
+
+debates <- readr::read_csv(debates_url)
+
+```
+
+2. Install and load the R package like this:
+
+```{r eval=F}
+devtools::install_github("favstats/demdebates2020")
+
+library(demdebates2020)
+``` 
+
+This is how the dataset looks like:
+
+```{r eval=T}
+demdebates2020::debates %>% 
+  dplyr::slice(1502:1510) %>% 
+  knitr::kable()
+
+
+```
+
+If you want to explore applause or laughter that candidates received, then you can take a look at the `background` variable.
+
+
+> *Note:* as of now, `backgound` is only available for Democratic debates 1 through 7. I couldn't find a transcript source that recorded applause or laughter for the 8th debate. If you have a source, please feel free to contact me and I am happy to add it!
+
+## Who received the most applause?
+
+We can use the `background` variable to see who received the most applause.
+
+
+```{r}
+
+## check out who received Applause
+debates %>% 
+  filter(background == "(APPLAUSE)") %>% 
+  dplyr::count(speaker, sort = T) %>% 
+  slice(1:10) %>% 
+  knitr::kable()
+  
+
+```
+
+
+Looks like Bernie Sanders received the most applause.
+
+We can also create a data visualization to better emphasize the differences.
+
+As mentioned before I will use emojis in the graphs to liven things up. In order to so, I use two functions from the great blogpost [Real emojis in ggplot2](https://www.hvitfeldt.me/blog/real-emojis-in-ggplot2/) by Emil Hvitfeldt.
+
+```{r}
+emoji_to_link <- function(x) {
+  paste0("https://emojipedia.org/emoji/",x) %>%
+    read_html() %>%
+    html_nodes("tr td a") %>%
+    .[1] %>%
+    html_attr("href") %>%
+    paste0("https://emojipedia.org/", .) %>%
+    read_html() %>%
+    html_node('div[class="vendor-image"] img') %>%
+    html_attr("src")
+}
+
+link_to_img <- function(x, size = 25) {
+  paste0("<img src='", x, "' width='", size, "'/>")
+}
+```
+
+Next, I get the emoji link for 👏
+
+```{r}
+clap_emoji <- emoji_to_link("👏") %>% link_to_img()
+
+clap_emoji
+```
+And I can include that in a graph:
+
+```{r, fig.width=10, fig.height=8}
+## load fonts
+loadfonts(device = "win")
+
+debates %>% 
+  dplyr::count(background, speaker, type, sort = T) %>% 
+  drop_na() %>% 
+  filter(background == "(APPLAUSE)") %>% 
+  mutate(speaker = fct_reorder(speaker, n)) %>% 
+  mutate(type = paste0(type, "s")) %>% 
+  ggplot(aes(speaker, n)) +
+  geom_col(aes(fill = type), width = 0.5) +
+  coord_flip() +
+  ggthemes::theme_hc() +
+  geom_label(aes(label = n), size = 3) +
+  facet_wrap(~type, scales = "free") +
+  ggthemes::scale_fill_gdocs() +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    legend.position = "none", 
+    plot.title = element_markdown(hjust = 0.5, size = 30, margin=margin(0,0,15,0), face = "bold")
+    ) +
+  labs(x = "", y = "Applause", title = "Who got the <span style='color: #3E7ACF'>most Applause</span><img src='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/clapping-hands-sign_1f44f.png' width='20'/><br>in Democratic Debates?",
+       caption = "\nDemocratic Debates: 1 - 7\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register") 
+
+
+
+
+```
+
+
+```{r, echo=F}
+
+tidytemplate::ggsave_it(applause, width = 10, height = 8)
+
+```
+
+We can also plot the same data as a heatmap across debates:
+
+```{r, echo=T, fig.width=10, fig.height=8}
+
+debates %>% 
+  filter(background == "(APPLAUSE)") %>% 
+  filter(type == "Candidate") %>% 
+  mutate(speaker = as.factor(speaker)) %>% 
+  mutate(debate = as.factor(debate)) %>% 
+  dplyr::count(background, speaker, debate, .drop = F) %>% 
+  drop_na() %>% 
+  mutate(speaker = fct_reorder(speaker, n)) %>% 
+  ggplot(aes(debate, speaker, fill = n)) +
+  geom_tile() +
+  scale_fill_gradient("Applause", low = "white") +
+  theme_classic() +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    plot.title = element_markdown(hjust = 0.5, size = 30, margin=margin(0,0,15,0), face = "bold")
+    ) +
+  labs(x = "Debate", y = "", title = "Who got the <span style='color: #3E7ACF'>most Applause</span><img src='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/clapping-hands-sign_1f44f.png' width='20'/><br>in Democratic Debates?",
+       caption = "\nDemocratic Debates: 1 - 7\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register")
+
+
+```
+
+
+```{r, echo=F}
+
+tidytemplate::ggsave_it(applause_heat, width = 10, height = 8)
+
+```
+
+## Who was the greatest jokester at democratic debates?
+
+We can also take a look at who received the most laughs during the debates. Just filter `background` by `(LAUGHTER)`.
+
+  
+```{r}
+debates %>% 
+  filter(background == "(LAUGHTER)") %>% 
+  dplyr::count(speaker, sort = T) %>% 
+  drop_na() %>% 
+  slice(1:10) %>% 
+  knitr::kable()
+  
+```
+
+Again, Bernie Sanders leads the field, closely followed by Andrew Yang (now dropped out) and Amy Klobuchar.
+
+We can visualize the data to get a better grasp of the data. With the same process as before, I get the emoji link for 😂
+
+```{r}
+laugh_emoji <- emoji_to_link("😂") %>% link_to_img()
+
+laugh_emoji
+```
+
+And I can include that in a graph:
+
+```{r, fig.width=8, fig.height=8}
+
+
+debates %>% 
+  filter(background == "(LAUGHTER)") %>% 
+  dplyr::count(background, speaker, type, sort = T) %>% 
+  drop_na() %>% 
+  mutate(speaker = fct_reorder(speaker, n)) %>% 
+  ggplot(aes(speaker, n)) +
+  geom_col(aes(fill = type), width = 0.5) +
+  # geom_point(aes(fill = type), size = 9) +
+  coord_flip() +
+  ggthemes::theme_hc() +
+  geom_label(aes(label = n), size = 3) +
+  # facet_grid(~type, scales = "free_x", space = "free") +
+  ggthemes::scale_fill_gdocs() +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    legend.position = "none", 
+    plot.title = element_markdown(size = 30, margin=margin(0,0,15,0), face = "bold")
+    ) +
+  labs(x = "", y = "Laughs", title = "Who got the <span style='color: #3E7ACF'>most Laughs</span><img src='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/face-with-tears-of-joy_1f602.png' width='20'/><br>in Democratic Debates?",
+       caption = "\nDemocratic Debates: 1 - 7\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register") 
+
+tidytemplate::ggsave_it(laughs, width = 8, height = 8)
+
+```
+
+
+We can also plot the same data as a heatmap across debates:
+
+```{r, echo=T, fig.width=10, fig.height=8}
+
+debates %>% 
+  filter(background == "(LAUGHTER)") %>% 
+  filter(type == "Candidate") %>% 
+  mutate(speaker = as.factor(speaker)) %>% 
+  mutate(debate = as.factor(debate)) %>% 
+  dplyr::count(background, speaker, debate, .drop = F) %>% 
+  drop_na() %>% 
+  mutate(speaker = fct_reorder(speaker, n)) %>% 
+  ggplot(aes(debate, speaker, fill = n)) +
+  geom_tile() +
+  scale_fill_gradient("Laughs", low = "white") +
+  theme_classic() +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    plot.title = element_markdown(hjust = 0.5, size = 30, margin=margin(0,0,15,0), face = "bold")
+    ) +
+  labs(x = "Debate", y = "", title = "Who got the <span style='color: #3E7ACF'>most Laughs</span><img src='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/face-with-tears-of-joy_1f602.png' width='20'/><br>in Democratic Debates?",
+       caption = "\nDemocratic Debates: 1 - 7\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register")
+
+
+```
+
+
+## Who spoke the most words?
+
+```{r}
+debates %>% 
+  unnest_tokens(word, speech) %>% 
+  filter(type == "Candidate") %>%
+  mutate(speaker = as.factor(speaker)) %>% 
+  mutate(debate = as.factor(debate)) %>% 
+  dplyr::count(speaker, .drop = F, sort = T) %>% 
+  mutate(total = sum(n)) %>% 
+  mutate(perc = round(n / total*100, 2)) %>% 
+  slice(1:10) %>% 
+  knitr::kable()
+
+```
+Again, we visualize the data.
+
+```{r}
+speak_emoji <- emoji_to_link("🗣") %>% link_to_img()
+
+speak_emoji
+```
+
+```{r, echo=T, fig.width=10, fig.height=8}
+
+
+debate_words <- debates %>% 
+  unnest_tokens(word, speech) %>% 
+  filter(type == "Candidate") %>%
+  mutate(speaker = as.factor(speaker)) %>% 
+  mutate(debate = as.factor(debate)) %>% 
+  dplyr::count(speaker, debate, .drop = F, sort = T) 
+
+# frontrunners <- c("Bernie Sanders", 
+#                   "Elizabeth Warren", 
+#                   "Joe Biden", 
+#                   "Pete Buttigieg", 
+#                   "Amy Klobuchar")
+
+
+
+debate_words %>% 
+  mutate(speaker = fct_reorder(speaker, n)) %>% 
+  ggplot(aes(debate, speaker, fill = n)) +
+  geom_tile() +
+  scale_fill_gradient("Words", low = "white") +
+  theme_classic() +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    plot.title = element_markdown(hjust = 0.5, size = 30, margin=margin(0,0,15,0), face = "bold")
+    ) +
+  labs(x = "Debate", y = "", title = "Who spoke the <span style='color: #3E7ACF'>most Words</span><img src='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/speaking-head-in-silhouette_1f5e3.png' width='20'/><br>in Democratic Debates?",
+       caption = "\nDemocratic Debates: 1 - 8\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register")
+
+
+
+```
+
+```{r, echo = F}
+tidytemplate::ggsave_it(spoken_words, width = 8, height = 6)
+
+```
+
+We see something very obvious: as the number of candidates decreases, the spoken words also increase for the remaining candidates (as they have to fill the space).
+
+
+
+## Did men speak more than women?
+
+```{r, echo=T, fig.width=10, fig.height=8}
+debate_gender <- debates %>% 
+  unnest_tokens(word, speech) %>% 
+  filter(type == "Candidate") %>%
+  dplyr::count(gender, debate, .drop = F) %>% 
+  group_by(debate) %>% 
+  mutate(total = sum(n)) %>% 
+  mutate(perc = n/total)
+
+debate_gender %>% 
+  filter(gender == "female") %>%
+  ggplot(aes(debate, perc, fill = gender)) +
+  geom_area(fill = "#3E7ACF", alpha = 0.75) +
+  ggrepel::geom_text_repel(aes(label = paste0(round(perc*100, 1), "%")), nudge_y = 0.025,
+                           direction = "y") +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 0.5)) +
+  ggthemes::theme_hc()  +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    legend.position = "top",
+    plot.title = element_markdown(size = 25, margin=margin(0,0,15,0), face = "bold")
+    ) +
+  labs(x = "", y = "% Spoken Words by Women\n", title = "Share of spoken Words by <span style='color: #3E7ACF'>Women</span><br>during the Democratic Debates",
+       caption = "\nDemocratic Debates: 1 - 8\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register") +
+  scale_x_continuous(breaks = 1:8)
+```
+
+Men have spoken more words than women across all debates. Of course, throughout the debates women were always in the minority (only 6 out of 22 Democratic candidates were women and now only 2 are left: Amy Klobuchar and Elizabeth Warren).
+
+```{r, echo = F}
+tidytemplate::ggsave_it(spoken_words_gender, width = 8, height = 6)
+
+```
+## What were the most common distinct words used by candidates?
+
+We can use tf-idf scores to tell what word combinations (bigrams) candidates used the most and also were most distinct across other candidates.
+
+```{r, fig.width=14, fig.height=9}
+speaker_words <- debates %>% 
+  filter(type == "Candidate") %>% 
+  mutate(speech = tm::removeWords(str_to_lower(speech), stop_words$word)) %>% 
+  unnest_tokens(word, speech, token = "ngrams", n = 2) %>%
+  count(speaker, word, sort = TRUE)
+  
+total_words <- speaker_words %>% 
+  group_by(speaker) %>% 
+  summarize(total = sum(n))
+
+
+speaker_words <- left_join(speaker_words, total_words)
+
+
+speaker_words <- speaker_words %>% 
+  bind_tf_idf(word, speaker, n)
+
+
+
+speaker_words %>%
+  arrange(desc(tf_idf)) %>%
+  filter(speaker %in% c("Bernie Sanders", "Elizabeth Warren",
+                        "Joe Biden", "Pete Buttigieg", 
+                        "Andrew Yang", "Amy Klobuchar")) %>%
+  group_by(speaker) %>% 
+  arrange(desc(tf_idf)) %>% 
+  slice(1:15) %>% 
+  ungroup() %>%
+  mutate(word = factor(word, levels = rev(unique(word)))) %>% 
+  ggplot(aes(word, tf_idf, fill = speaker)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  facet_wrap(~speaker, ncol = 3, scales = "free") +
+  coord_flip()   +
+  ggthemes::theme_hc() +
+  # facet_grid(~type, scales = "free_x", space = "free") +
+  ggthemes::scale_fill_colorblind() +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    legend.position = "top",
+    plot.title = element_markdown(size = 30, margin=margin(0,0,20,0), face = "bold", hjust = 0.5)
+    ) +
+  labs(x = "", y = "tf-idf", title = "Most Common Distinct Word Combinations<br>for each Democratic Presidential Candidate",
+       caption = "\nDemocratic Debates: 1 - 8\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register") 
+
+
+
+```
+
+
+
+```{r, echo = F}
+tidytemplate::ggsave_it(tfidfplot, width = 14, height = 9)
+
+```
+
+```{r}
+
+sessionInfo()
+
+```
+
