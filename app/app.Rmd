@@ -1,0 +1,60 @@
+---
+title: "Tidy Template"
+author: "Fabio Votta"
+date: "The Date"
+output: html_document
+---
+
+## Packages and Folders
+
+```{r}
+# Install these packages if you don't have them yet
+# if (!require("pacman")) install.packages("pacman")
+# devtools::install_github("favstats/demdebates2020")
+
+pacman::p_load(tidyverse, tidytext, demdebates2020, apexcharter)
+
+source("mods/plots.R")
+
+speakers <- debates %>% count(speaker, sort = T)
+frontrunners <- speakers$speaker[1:5]
+```
+
+## Word Counts
+
+```{r}
+debates %>% 
+  filter(speaker %in% frontrunners) %>% 
+  count_words() %>%
+  plot_word_counts()
+```
+
+
+## Applause
+
+```{r}
+debates %>% 
+  filter(speaker %in% frontrunners) %>% 
+  count_applauses() %>%
+  plot_applause_counts
+```
+
+
+## Laughter
+
+```{r}
+debates %>% 
+  filter(speaker %in% frontrunners) %>% 
+  count_laughs() %>%
+  plot_laugh_counts
+```
+
+
+## Cross Talk
+
+```{r}
+debates %>% 
+  filter(speaker %in% frontrunners) %>% 
+  count_talks() %>%
+  plot_talk_counts
+```
