@@ -32,7 +32,7 @@ statistics_ui <- function(id){
 statistics_server <- function(input, output, session){
 
   output$speakers_selection <- renderUI({
-    speakers <- demdebates2020::debates %>% dplyr::count(speaker, sort = T) %>% dplyr::pull(speaker)
+    speakers <- demdebates2020::debates %>% dplyr::filter(type == "Candidate") %>% dplyr::count(speaker, sort = T) %>% dplyr::pull(speaker)
     defaults <- speakers[1:5] %>% paste(collapse = ",")
     shiny.semantic::search_selection_choices(session$ns("speakers"), speakers, value = defaults, multiple = T)
   })
@@ -42,6 +42,7 @@ statistics_server <- function(input, output, session){
     req(input$type)
 
     demdebates2020::debates %>%
+      filter(type == "Candidate") %>%
       filter(speaker %in% stringr::str_split(input$speakers, ",")[[1]]) %>%
       count_words() %>%
       plot_word_counts(input$type)
@@ -54,6 +55,8 @@ statistics_server <- function(input, output, session){
     print(input$type)
 
     demdebates2020::debates %>%
+      filter(type == "Candidate") %>%
+      filter(debate != 8) %>%
       filter(speaker %in% stringr::str_split(input$speakers, ",")[[1]]) %>%
       count_applauses() %>%
       plot_applause_counts(input$type)
@@ -64,6 +67,8 @@ statistics_server <- function(input, output, session){
     req(input$type)
 
     demdebates2020::debates %>%
+      filter(type == "Candidate") %>%
+      filter(debate != 8) %>%
       filter(speaker %in% stringr::str_split(input$speakers, ",")[[1]]) %>%
       count_laughs() %>%
       plot_laugh_counts(input$type)
@@ -74,6 +79,8 @@ statistics_server <- function(input, output, session){
     req(input$type)
 
     demdebates2020::debates %>%
+      filter(type == "Candidate") %>%
+      filter(debate != 8) %>%
       filter(speaker %in% stringr::str_split(input$speakers, ",")[[1]]) %>%
       count_talks() %>%
       plot_talk_counts(input$type)

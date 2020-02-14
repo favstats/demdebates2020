@@ -9,7 +9,8 @@ plot_counts <- function(.data, type = "heatmap"){ #"heatmap", "line"
         mapping = aes(x = debate, y = speaker, fill = n)
       ) %>%
       apexcharter::ax_colors("#008FFB")
-  } else {
+  }
+  if(type == "line"){
     viz <- .data %>%
       apexcharter::apex(
         type = type,
