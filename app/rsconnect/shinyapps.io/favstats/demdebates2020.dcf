@@ -1,0 +1,12 @@
+name: demdebates2020
+title: demdebates2020
+username:
+account: favstats
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1812894
+bundleId: 2801283
+url: https://favstats.shinyapps.io/demdebates2020/
+when: 1581696941.78524
+asMultiple: FALSE
+asStatic: FALSE

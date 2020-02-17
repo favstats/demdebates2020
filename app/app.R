@@ -1,4 +1,11 @@
-pacman::p_load(shiny, shiny.semantic, semantic.dashboard, tidyverse, tidytext, demdebates2020, apexcharter)
+library(demdebates2020)
+library(shiny)
+library(shiny.semantic)
+library(semantic.dashboard)
+library(tidyverse)
+library(tidytext)
+library(apexcharter)
+
 
 dir("mods", full.names = T) %>% walk(source)
 

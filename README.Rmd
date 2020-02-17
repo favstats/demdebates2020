@@ -114,11 +114,18 @@ library(demdebates2020)
 
 ```{r eval=T}
 demdebates2020::debates %>% 
-  dplyr::slice(1502:1510) %>% 
+  dplyr::slice(1508:1510) %>% 
   knitr::kable()
 
 
 ```
+
+
+## Blog Post
+
+Check out this [blog post](http://www.favstats.eu/post/demdebates/) for some more data exploration.
+
+![](https://raw.githubusercontent.com/favstats/demdebates2020/master/vignettes/images/tfidfplot.png)
 
 
 
