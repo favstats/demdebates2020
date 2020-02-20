@@ -167,7 +167,7 @@ debates %>%
     plot.title = element_markdown(hjust = 0.5, size = 30, margin=margin(0,0,15,0), face = "bold")
     ) +
   labs(x = "", y = "Applause", title = "Who got the <span style='color: #3E7ACF'>most Applause</span><img src='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/clapping-hands-sign_1f44f.png' width='20'/><br>in Democratic Debates?",
-       caption = "\nDemocratic Debates: 1 - 7\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register") 
+       caption = "\nDemocratic Debates: 1 - 7 & 9\nData Visualization: @favstats\nSource: Transcripts by Washington Post, Des Moines Register & NBC News") 
 
 
 
@@ -202,7 +202,7 @@ debates %>%
     plot.title = element_markdown(hjust = 0.5, size = 30, margin=margin(0,0,15,0), face = "bold")
     ) +
   labs(x = "Debate", y = "", title = "Who got the <span style='color: #3E7ACF'>most Applause</span><img src='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/clapping-hands-sign_1f44f.png' width='20'/><br>in Democratic Debates?",
-       caption = "\nDemocratic Debates: 1 - 7\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register")
+       caption = "\nDemocratic Debates: 1 - 7 & 9\nData Visualization: @favstats\nSource: Transcripts by Washington Post, Des Moines Register & NBC News")
 
 
 ```
@@ -263,7 +263,7 @@ debates %>%
     plot.title = element_markdown(size = 30, margin=margin(0,0,15,0), face = "bold")
     ) +
   labs(x = "", y = "Laughs", title = "Who got the <span style='color: #3E7ACF'>most Laughs</span><img src='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/face-with-tears-of-joy_1f602.png' width='20'/><br>in Democratic Debates?",
-       caption = "\nDemocratic Debates: 1 - 7\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register") 
+       caption = "\nDemocratic Debates: 1 - 7 & 9\nData Visualization: @favstats\nSource: Transcripts by Washington Post, Des Moines Register & NBC News") 
 
 tidytemplate::ggsave_it(laughs, width = 8, height = 8)
 
@@ -291,7 +291,7 @@ debates %>%
     plot.title = element_markdown(hjust = 0.5, size = 30, margin=margin(0,0,15,0), face = "bold")
     ) +
   labs(x = "Debate", y = "", title = "Who got the <span style='color: #3E7ACF'>most Laughs</span><img src='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/face-with-tears-of-joy_1f602.png' width='20'/><br>in Democratic Debates?",
-       caption = "\nDemocratic Debates: 1 - 7\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register")
+       caption = "\nDemocratic Debates: 1 - 7 & 9\nData Visualization: @favstats\nSource: Transcripts by Washington Post, Des Moines Register & NBC News")
 
 
 ```
@@ -349,7 +349,7 @@ debate_words %>%
     plot.title = element_markdown(hjust = 0.5, size = 30, margin=margin(0,0,15,0), face = "bold")
     ) +
   labs(x = "Debate", y = "", title = "Who spoke the <span style='color: #3E7ACF'>most Words</span><img src='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/speaking-head-in-silhouette_1f5e3.png' width='20'/><br>in Democratic Debates?",
-       caption = "\nDemocratic Debates: 1 - 8\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register")
+       caption = "\nDemocratic Debates: 1 - 9\nData Visualization: @favstats\nSource: Transcripts by Washington Post, Des Moines Register & NBC News")
 
 
 
@@ -389,7 +389,7 @@ debate_gender %>%
     plot.title = element_markdown(size = 25, margin=margin(0,0,15,0), face = "bold")
     ) +
   labs(x = "", y = "% Spoken Words by Women\n", title = "Share of spoken Words by <span style='color: #3E7ACF'>Women</span><br>during the Democratic Debates",
-       caption = "\nDemocratic Debates: 1 - 8\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register") +
+       caption = "\nDemocratic Debates: 1 - 9\nData Visualization: @favstats\nSource: Transcripts by Washington Post, Des Moines Register & NBC News") +
   scale_x_continuous(breaks = 1:8)
 ```
 
@@ -399,6 +399,7 @@ Men have spoken more words than women across all debates. Of course, throughout 
 tidytemplate::ggsave_it(spoken_words_gender, width = 8, height = 6)
 
 ```
+
 ## What were the most common distinct words used by candidates?
 
 We can use tf-idf scores to tell what word combinations (bigrams) candidates used the most and also were most distinct across other candidates.
@@ -447,7 +448,7 @@ speaker_words %>%
     plot.title = element_markdown(size = 30, margin=margin(0,0,20,0), face = "bold", hjust = 0.5)
     ) +
   labs(x = "", y = "tf-idf", title = "Most Common Distinct Word Combinations<br>for each Democratic Presidential Candidate",
-       caption = "\nDemocratic Debates: 1 - 8\nData Visualization: @favstats\nSource: Transcripts by Washington Post & Des Moines Register") 
+       caption = "\nDemocratic Debates: 1 - 9\nData Visualization: @favstats\nSource: Transcripts by Washington Post, Des Moines Register & rev.com") 
 
 
 
@@ -459,6 +460,70 @@ speaker_words %>%
 tidytemplate::ggsave_it(tfidfplot, width = 14, height = 9)
 
 ```
+
+## Ninth Debate
+
+```{r}
+
+
+
+speaker_words <- demdebates2020::debates %>% 
+  filter(debate == 9) %>% 
+  filter(type == "Candidate") %>% 
+  mutate(speech = tm::removeWords(str_to_lower(speech), stop_words$word)) %>% 
+  unnest_tokens(word, speech, token = "ngrams", n = 1) %>%
+  count(speaker, word, sort = TRUE)
+  
+total_words <- speaker_words %>% 
+  group_by(speaker) %>% 
+  summarize(total = sum(n))
+
+
+speaker_words <- left_join(speaker_words, total_words)
+
+
+speaker_words <- speaker_words %>%
+  bind_tf_idf(word, speaker, n) %>% 
+  filter(n > 2) %>% 
+  drop_na(word) 
+
+
+
+gg9 <- speaker_words %>%
+  arrange(desc(tf_idf)) %>%
+  filter(speaker %in% c("Bernie Sanders", "Elizabeth Warren",
+                        "Joe Biden", "Pete Buttigieg", 
+                        "Mike Bloomberg", "Amy Klobuchar")) %>%
+  group_by(speaker) %>% 
+  arrange(desc(tf_idf)) %>% 
+  slice(1:15) %>% 
+  ungroup() %>%
+  # mutate(word = factor(word, levels = rev(unique(word)))) %>% 
+  mutate(word = fct_reorder(word, tf_idf)) %>% 
+  ggplot(aes(word, tf_idf, fill = speaker)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  facet_wrap(~speaker, ncol = 3, scales = "free") +
+  coord_flip()   +
+  ggthemes::theme_hc() +
+  # facet_grid(~type, scales = "free_x", space = "free") +
+  ggthemes::scale_fill_colorblind() +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    legend.position = "top",
+    plot.title = element_markdown(size = 22, margin=margin(0,0,20,0), face = "bold", hjust = 0.5)
+    ) +
+  labs(x = "", y = "tf-idf", title = "Most Common Distinct Words for each Candidate during 9th Debate",
+       caption = "\nDemocratic Debate: 9\nData Visualization: @favstats\nSource: Transcripts by Washington Post, Des Moines Register, rev.com & NBC News") 
+
+# rath::ggpreview(gg9, width = 14, height = 9)
+  # C:\Users\fabio\Desktop\demdebates2020
+
+tidytemplate::ggsave_it(gg9, 
+                        width = 14, 
+                        height = 9)
+```
+
 
 ```{r}
 
