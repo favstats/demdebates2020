@@ -179,6 +179,32 @@ debates %>%
 
 tidytemplate::ggsave_it(applause, width = 10, height = 8)
 
+
+debates %>% 
+  dplyr::count(background, speaker, type, sort = T) %>% 
+  drop_na() %>% 
+  filter(background == "(APPLAUSE)") %>% 
+  mutate(speaker = fct_reorder(speaker, n)) %>% 
+  filter(type == "Candidate") %>% 
+  mutate(type = paste0(type, "s")) %>% 
+  ggplot(aes(speaker, n)) +
+  geom_col(aes(fill = type), width = 0.5) +
+  coord_flip() +
+  ggthemes::theme_hc() +
+  geom_label(aes(label = n), size = 3) +
+  # facet_wrap(~type, scales = "free") +
+  ggthemes::scale_fill_gdocs() +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    legend.position = "none", 
+    plot.title = element_markdown(hjust = 0.5, size = 30, margin=margin(0,0,15,0), face = "bold")
+    ) +
+  labs(x = "", y = "Applause", title = "Who got the <span style='color: #3E7ACF'>most Applause</span><img src='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/clapping-hands-sign_1f44f.png' width='20'/><br>in Democratic Debates?",
+       caption = "\nDemocratic Debates: 1 - 7 & 9\nData Visualization: @favstats\nSource: Transcripts by Washington Post, Des Moines Register & NBC News") 
+
+tidytemplate::ggsave_it(applause_single, width = 10, height = 8)
+
+
 ```
 
 We can also plot the same data as a heatmap across debates:
@@ -448,7 +474,7 @@ speaker_words %>%
     plot.title = element_markdown(size = 30, margin=margin(0,0,20,0), face = "bold", hjust = 0.5)
     ) +
   labs(x = "", y = "tf-idf", title = "Most Common Distinct Word Combinations<br>for each Democratic Presidential Candidate",
-       caption = "\nDemocratic Debates: 1 - 9\nData Visualization: @favstats\nSource: Transcripts by Washington Post, Des Moines Register & rev.com") 
+       caption = "\nDemocratic Debates: 1 - 9\nData Visualization: @favstats\nSource: Transcripts by Washington Post, Des Moines Register, rev.com & NBC News") 
 
 
 
