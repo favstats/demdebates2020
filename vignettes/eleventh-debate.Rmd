@@ -1,0 +1,208 @@
+---
+title: "ninth-debate"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ninth-debate}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Start
+
+First, I load in some packages. 
+
+```{r}
+# Install these packages if you don't have them yet
+# if (!require("pacman")) install.packages("pacman")
+# devtools::install_github("favstats/demdebates2020")
+
+pacman::p_load(tidyverse,       # powerful data wrangling
+               knitr,           # for tables
+               extrafont,       # extra fonts
+               ggtext,          # markdown in ggplot!
+               rvest,           # for emoji scraping 
+               tidytext,        # text processing
+               demdebates2020,  # democratic debates datasets
+               ggthemes,        # custom themes
+               scales)          # for prettying up plot labels
+
+```
+
+# Eleventh Debate
+
+## Most commong distinct words
+
+```{r}
+
+
+
+speaker_words <- demdebates2020::debates %>% 
+  filter(debate == 11) %>% 
+  filter(type == "Candidate") %>% 
+  mutate(speech = tm::removeWords(str_to_lower(speech), stop_words$word)) %>% 
+  unnest_tokens(word, speech, token = "ngrams", n = 1) %>%
+  count(speaker, word, sort = TRUE)
+  
+total_words <- speaker_words %>% 
+  group_by(speaker) %>% 
+  summarize(total = sum(n))
+
+
+speaker_words <- left_join(speaker_words, total_words)
+
+
+speaker_words <- speaker_words %>%
+  bind_tf_idf(word, speaker, n) %>% 
+  filter(n > 2) %>% 
+  drop_na(word) 
+
+
+
+gg9 <- speaker_words %>%
+  arrange(desc(tf_idf)) %>%
+  filter(speaker %in% c("Bernie Sanders", "Elizabeth Warren",
+                        "Joe Biden", "Pete Buttigieg", 
+                        "Mike Bloomberg", "Amy Klobuchar")) %>%
+  group_by(speaker) %>% 
+  arrange(desc(tf_idf)) %>% 
+  slice(1:15) %>% 
+  ungroup() %>%
+  # mutate(word = factor(word, levels = rev(unique(word)))) %>% 
+  mutate(word = fct_reorder(word, tf_idf)) %>% 
+  ggplot(aes(word, tf_idf, fill = speaker)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  facet_wrap(~speaker, ncol = 3, scales = "free") +
+  coord_flip()   +
+  ggthemes::theme_hc() +
+  # facet_grid(~type, scales = "free_x", space = "free") +
+  ggthemes::scale_fill_economist() +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    legend.position = "top",
+    plot.title = element_markdown(size = 15, margin=margin(0,0,20,0), face = "bold", hjust = 0.5)
+    ) +
+  labs(x = "", y = "tf-idf", title = "Most Common Distinct Words for each Candidate during 11th Debate",
+       caption = "\n11th Democratic Debate\nData Visualization: @favstats\nSource: Transcript by NBC News") 
+
+# rath::ggpreview(gg9, width = 14, height = 9)
+  # C:\Users\fabio\Desktop\demdebates2020
+
+tidytemplate::ggsave_it(gg11, 
+                        width = 10, 
+                        height = 6)
+```
+
+## Who got the most Boos?
+
+```{r}
+
+demdebates2020::debates %>% 
+  filter(debate == 9)  %>% 
+  filter(type == "Candidate") %>% 
+  filter(speaker %in% c("Bernie Sanders", "Elizabeth Warren",
+                        "Joe Biden", "Pete Buttigieg", 
+                        "Mike Bloomberg", "Amy Klobuchar")) %>%
+  mutate(speaker = as.factor(speaker)) %>% 
+  mutate(background = as.factor(background)) %>% 
+  dplyr::count(background, speaker, sort = T, .drop = F) %>% 
+  drop_na() %>% 
+  filter(background == "(AUDIENCE BOOS)") %>% 
+  mutate(speaker = fct_reorder(speaker, n)) %>% 
+  ggplot(aes(speaker, n)) +
+  geom_col(aes(fill = speaker), width = 0.25) +
+  coord_flip() +
+  ggthemes::theme_hc() +
+  geom_label(aes(label = n), size = 4) +
+  ggthemes::scale_fill_gdocs() +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    legend.position = "none", 
+    plot.title = element_markdown(size = 14,
+                                  hjust = 0.5,
+                                  # margin=margin(0,0,15,0),
+                                  face = "bold"),
+    plot.caption = element_text(size = 5)
+    ) +
+  labs(x = "", y = "Audience Boos", title = "Who got the <span style='color: #3E7ACF'>most audience boos</span><br>in Democratic Debates?",
+       caption = "\nDemocratic Debates: 1 - 7 & 9 - 10\nData Visualization: @favstats\nSource: Transcripts by Washington Post, Des Moines Register & NBC News") +
+  scale_y_continuous(breaks = 0:2)
+
+tidytemplate::ggsave_it(boos3, width = 6, height = 4)
+  
+
+```
+
+## Who the most applause?
+
+```{r}
+
+demdebates2020::debates %>% 
+  filter(debate == 9)  %>% 
+  filter(type == "Candidate") %>% 
+  filter(speaker %in% c("Bernie Sanders", "Elizabeth Warren",
+                        "Joe Biden", "Pete Buttigieg", 
+                        "Mike Bloomberg", "Amy Klobuchar")) %>% 
+  dplyr::count(background, speaker, type, sort = T) %>% 
+  drop_na() %>% 
+  filter(background == "(APPLAUSE)") %>% 
+  mutate(speaker = fct_reorder(speaker, n)) %>% 
+  mutate(type = paste0(type, "s")) %>% 
+  ggplot(aes(speaker, n)) +
+  geom_col(aes(fill = type), width = 0.5) +
+  coord_flip() +
+  ggthemes::theme_hc() +
+  geom_label(aes(label = n), size = 4) +
+  # facet_wrap(~type, scales = "free") +
+  ggthemes::scale_fill_gdocs() +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    legend.position = "none", 
+    plot.title = element_markdown(hjust = 0.5, size = 30, margin=margin(0,0,15,0), face = "bold")
+    ) +
+  labs(x = "", y = "Applause", title = "Who got the <span style='color: #3E7ACF'>most Applause</span><img src='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/clapping-hands-sign_1f44f.png' width='20'/><br>in 10th Democratic Debate?",
+       caption = "\nDemocratic Debate: 10\nData Visualization: @favstats\nSource: Transcript by NBC News") 
+
+
+tidytemplate::ggsave_it(applause4, width = 10, height = 8)
+```
+
+```{r, echo=F}
+
+
+demdebates2020::debates %>% 
+  filter(debate == 9)  %>% 
+  filter(type == "Candidate") %>% 
+  filter(speaker %in% c("Bernie Sanders", "Elizabeth Warren",
+                        "Joe Biden", "Pete Buttigieg", 
+                        "Mike Bloomberg", "Amy Klobuchar")) %>% 
+  dplyr::count(background, speaker, type, sort = T) %>% 
+  drop_na() %>% 
+  filter(background == "(LAUGHTER)")  %>% 
+  mutate(speaker = fct_reorder(speaker, n)) %>% 
+  ggplot(aes(speaker, n)) +
+  geom_col(aes(fill = type), width = 0.5) +
+  # geom_point(aes(fill = type), size = 9) +
+  coord_flip() +
+  ggthemes::theme_hc() +
+  geom_label(aes(label = n), size = 4) +
+  # facet_grid(~type, scales = "free_x", space = "free") +
+  ggthemes::scale_fill_gdocs() +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    legend.position = "none", 
+    plot.title = element_markdown(size = 30, margin=margin(0,0,15,0), face = "bold")
+    ) +
+  labs(x = "", y = "Laughs", title = "Who got the <span style='color: #3E7ACF'>most Laughs</span><img src='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/face-with-tears-of-joy_1f602.png' width='20'/><br>in 10th Democratic Debate?",
+       caption = "\nDemocratic Debates: 1 - 7 & 9 - 10\nData Visualization: @favstats\nSource: Transcript by NBC News") 
+
+tidytemplate::ggsave_it(laughs4, width = 8, height = 8)
+
+```

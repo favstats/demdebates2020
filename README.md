@@ -10,7 +10,7 @@ the Democratic debates of the 2020 Presidential Election.
 
 The package includes a single dataset: `debates`. This dataset
 represents the spoken words of all Democratic candidates for US
-president at ten Democratic debates. The following
+president at eleven Democratic debates. The following
 [sources](https://github.com/favstats/demdebates2020#sources) have been
 used to compile the data: Washington Post, Des Moines Register and
 rev.com. The dataset has the following eight columns:
@@ -96,3 +96,5 @@ some more data exploration.
     <https://www.nbcnews.com/politics/2020-election/full-transcript-ninth-democratic-debate-las-vegas-n1139546>
   - Debate 10:
     <https://www.cbsnews.com/news/south-carolina-democratic-debate-full-transcript-text/>
+  - Debate 11:
+    <https://www.rev.com/blog/transcripts/march-democratic-debate-transcript-joe-biden-bernie-sanders>

@@ -67,13 +67,14 @@ debates <- debates %>%
 
 debates <- readRDS("D:/Projects/git_proj/dem_debates2/data/debates9.RDS")
 debates <- readRDS("D:/Projects/git_proj/dem_debates2/data/debates10.RDS")
+debates <- readRDS("D:/Projects/git_proj/dem_debates2/data/debates11.RDS")
 
 
 use_data(debates, overwrite = T)
 
 
 debates %>% 
-  filter(debate == 7)
+  dplyr::filter(debate == 11)
 
 ```
 
@@ -84,7 +85,7 @@ The goal of `demdebates2020` is to provide access to all transcripts of the Demo
 
 ## Usage
 
-The package includes a single dataset: `debates`. This dataset represents the spoken words of all Democratic candidates for US president at ten Democratic debates. The following [sources](https://github.com/favstats/demdebates2020#sources) have been used to compile the data: Washington Post, Des Moines Register and rev.com. The dataset has the following eight columns:
+The package includes a single dataset: `debates`. This dataset represents the spoken words of all Democratic candidates for US president at eleven Democratic debates. The following [sources](https://github.com/favstats/demdebates2020#sources) have been used to compile the data: Washington Post, Des Moines Register and rev.com. The dataset has the following eight columns:
 
 + `speaker`: Who is speaking
 + `background`: Reactions from the audience, includes `(APPLAUSE)` or `(LAUGHTER)` 
@@ -150,3 +151,4 @@ Check out this [blog post](http://www.favstats.eu/post/demdebates/) for some mor
 + Debate 8: https://www.rev.com/blog/transcripts/new-hampshire-democratic-debate-transcript
 + Debate 9: https://www.nbcnews.com/politics/2020-election/full-transcript-ninth-democratic-debate-las-vegas-n1139546
 + Debate 10: https://www.cbsnews.com/news/south-carolina-democratic-debate-full-transcript-text/
++ Debate 11: https://www.rev.com/blog/transcripts/march-democratic-debate-transcript-joe-biden-bernie-sanders
