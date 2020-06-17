@@ -90,7 +90,7 @@ gg9 <- speaker_words %>%
     plot.title = element_markdown(size = 15, margin=margin(0,0,20,0), face = "bold", hjust = 0.5)
     ) +
   labs(x = "", y = "tf-idf", title = "Most Common Distinct Words for each Candidate during 11th Debate",
-       caption = "\n11th Democratic Debate\nData Visualization: @favstats\nSource: Transcript by NBC News") 
+       caption = "\n11th Democratic Debate\nData Visualization: @favstats\nSource: Transcript by rev.com") 
 
 # rath::ggpreview(gg9, width = 14, height = 9)
   # C:\Users\fabio\Desktop\demdebates2020
@@ -145,7 +145,7 @@ tidytemplate::ggsave_it(boos3, width = 6, height = 4)
 ```{r}
 
 demdebates2020::debates %>% 
-  filter(debate == 9)  %>% 
+  filter(debate == 11)  %>% 
   filter(type == "Candidate") %>% 
   filter(speaker %in% c("Bernie Sanders", "Elizabeth Warren",
                         "Joe Biden", "Pete Buttigieg", 
@@ -178,7 +178,7 @@ tidytemplate::ggsave_it(applause4, width = 10, height = 8)
 
 
 demdebates2020::debates %>% 
-  filter(debate == 9)  %>% 
+  filter(debate == 11)  %>% 
   filter(type == "Candidate") %>% 
   filter(speaker %in% c("Bernie Sanders", "Elizabeth Warren",
                         "Joe Biden", "Pete Buttigieg", 
@@ -205,4 +205,96 @@ demdebates2020::debates %>%
 
 tidytemplate::ggsave_it(laughs4, width = 8, height = 8)
 
+```
+
+
+
+```{r}
+library(spacyr)
+spacy_initialize()
+```
+
+Tidytext can take a custom tokenization function
+
+```{r}
+library(tidyverse)
+library(demdebates2020)
+library(tidytext)
+
+tokenize_scispacy_entities <- function(text) {
+  spacy_extract_entity(text) %>%
+    group_by(doc_id) %>%
+    nest() %>%
+    pull(data) %>%
+    map("text") %>%
+    map(str_to_lower)
+}
+
+tokenize_scispacy_entities(c("Myeloid derived suppressor cells (MDSC) are immature 
+myeloid cells with immunosuppressive activity.", "They accumulate in tumor-bearing mice and humans 
+with different types of cancer, including hepatocellular 
+carcinoma (HCC)."))
+
+abstract_entities <- debates %>%
+  filter(type == "Candidate") %>% 
+  select(speaker, speech) %>%
+  group_by(speaker) %>%
+  summarise(speech = paste0(speech, collapse = "\n")) %>% 
+  ungroup() %>% 
+  unnest_tokens(entity, speech, token = tokenize_scispacy_entities)
+
+
+speaker_words <- abstract_entities%>% 
+  filter(entity != "na") %>% 
+  dplyr::count(speaker, entity, sort = T)
+
+
+total_words <- speaker_words %>% 
+  group_by(speaker) %>% 
+  summarize(total = sum(n))
+
+
+speaker_words <- left_join(speaker_words, total_words)
+
+
+speaker_words <- speaker_words %>%
+  bind_tf_idf(entity, speaker, n) %>% 
+  filter(n > 2) %>% 
+  drop_na(entity) 
+
+library(ggtext)
+
+gg11 <- speaker_words %>%
+  arrange(desc(tf_idf)) %>%
+  filter(speaker %in% c("Bernie Sanders", "Elizabeth Warren",
+                        "Joe Biden", "Pete Buttigieg", 
+                        "Mike Bloomberg", "Amy Klobuchar")) %>%
+  group_by(speaker) %>% 
+  arrange(desc(tf_idf)) %>% 
+  slice(1:15) %>% 
+  ungroup() %>%
+  # mutate(word = factor(word, levels = rev(unique(word)))) %>% 
+  mutate(entity = fct_reorder(entity, tf_idf)) %>% 
+  ggplot(aes(entity, tf_idf, fill = speaker)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  facet_wrap(~speaker, ncol = 3, scales = "free") +
+  coord_flip()   +
+  ggthemes::theme_hc() +
+  # facet_grid(~type, scales = "free_x", space = "free") +
+  ggthemes::scale_fill_economist() +
+  theme(
+    text = element_text(family = "Fira Code Retina"),
+    legend.position = "top",
+    plot.title = element_markdown(size = 15, margin=margin(0,0,20,0), face = "bold", hjust = 0.5)
+    ) +
+  labs(x = "", y = "tf-idf", title = "Most Common Distinct entitys for each Candidate during 11th Debate",
+       caption = "\n11th Democratic Debate\nData Visualization: @favstats\nSource: Transcript by rev.com") 
+
+# rath::ggpreview(gg9, width = 14, height = 9)
+  # C:\Users\fabio\Desktop\demdebates2020
+
+tidytemplate::ggsave_it(gg12, 
+                        width = 10, 
+                        height = 6)
 ```
